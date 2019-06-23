@@ -44,8 +44,39 @@ Matrix.prototype.ancestry=function (x,y){
 Matrix.prototype.badroot=function (){
   return this.getParent(this.columns-1,this.lowermostNonzero());
 }
+Matrix.prototype.color=function (x,y){
+  if (BMV=="4"){
+    if (y<this.lowermostNonzero()&&x>=this.badroot()&&x!==this.columns-1){
+      if (this.ancestry(x,y).includes(this.badroot())){
+        return green;
+      }else{
+        return pink;
+      }
+    }else{
+      return "white";
+    }
+  }else if (BMV=="3.3"){
+    if (y<this.lowermostNonzero()&&x>=this.badroot()&&x!==this.columns-1){
+      if (this.ancestry(x,this.lowermostNonzero()).includes(this.badroot())||this.getParent(x,y)>this.badroot()&&this.color(this.getParent(x,y),y)==green){
+        return green;
+      }else{
+        return pink;
+      }
+    }else{
+      return "white";
+    }
+  }else{
+    return "#dddddd"
+  }
+}
+var BMV="4";
+var green="#56f442";
+var pink="#e841f4";
 var lastmatrix;
-
+function changeVersion(){
+  BMV=dg("version").value;
+  draw();
+}
 //display
 var dg=function (id){
   return document.getElementById(id);
@@ -97,15 +128,7 @@ function draw(){
       //node
       ctx.strokeStyle="black";
       console.log(x+","+y+":"+matrix.getParent(x,y))
-      if (y<matrix.lowermostNonzero()&&x>=matrix.badroot()){
-        if (matrix.ancestry(x,y).includes(matrix.badroot())){
-          ctx.fillStyle="#56f442";
-        }else{
-          ctx.fillStyle="#e841f4";
-        }
-      }else{
-        ctx.fillStyle="white";
-      }
+      ctx.fillStyle=matrix.color(x,y);
       ctx.lineWidth=1;
       ctx.beginPath();
       ctx.arc(rowbase[0]+x*30,rowbase[1]-matrix.get(x,y)*30,7.8,0,2*Math.PI);
