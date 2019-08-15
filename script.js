@@ -1,3 +1,17 @@
+Array.prototype.min=function(){
+  var min=this[0];
+  for(var i=1;i<this.length;i++){
+    if(this[i]<min)min=this[i];
+  }
+  return min;
+}
+Array.prototype.max=function(){
+  var max=this[0];
+  for(var i=1;i<this.length;i++){
+    if(this[i]>max)max=this[i];
+  }
+  return max;
+}
 //matrix
 function Matrix(matrix){
   this.matrix=matrix;
@@ -113,9 +127,48 @@ function draw(){
   ctx.fillRect(0,0,640,960);
   
   //draw
+  var rowbase=[50,-50];
   for (var y=0;y<matrix.rows;y++){
-    var rowbase=[50,y*150+150];
+    stop;
+    //get lowerbound of upper row
+    var lowerbound=new Array(matrix.columns);
+    if(y>0){
+      for(var x=0;x<matrix.columns;x++)lowerbound[x]=+Infinity;
+      for(var x=matrix.columns-1;x>=0;x--){
+        var z=matrix.get(x,y-1);
+        lowerbound[x]=[lowerbound[x],z].min();
+        var p=matrix.getParent(x,y-1);
+        if(p!=-1){
+          for(var x2=p+1;x2<=x;x2++){
+            lowerbound[x2]=[lowerbound[x2],z].min();
+          }
+        }
+      }
+    }else{
+      for(var x=0;x<matrix.columns;x++)lowerbound[x]=0;
+    }
+    //get upperbound of current row
+    var upperbound=new Array(matrix.columns);
+    for(var x=0;x<matrix.columns;x++)upperbound[x]=0;
+    for(var x=matrix.columns-1;x>=0;x--){
+      var z=matrix.get(x,y);
+      upperbound[x]=[upperbound[x],z].max();
+      var p=matrix.getParent(x,y);
+      if(p!=-1){
+        for(var x2=p+1;x2<=x;x2++){
+          upperbound[x2]=[upperbound[x2],z-1].max();
+        }
+      }
+    }
+    //make margin
+    var margin=0;
+    for(var x=0;x<matrix.columns;x++){
+      margin = [margin, upperbound[x]-lowerbound[x]].max();
+    }
     //row root
+    rowbase[1]=rowbase[1]+(margin+3)*30;
+    console.log("margin["+y+"]="+margin);
+    console.log("base["+y+"]="+rowbase[1]);
     ctx.strokeStyle="black";
     ctx.lineWidth=2;
     ctx.beginPath();
