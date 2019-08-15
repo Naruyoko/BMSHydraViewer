@@ -138,10 +138,8 @@ function draw(){
         var z=matrix.get(x,y-1);
         lowerbound[x]=[lowerbound[x],z].min();
         var p=matrix.getParent(x,y-1);
-        if(p!=-1){
-          for(var x2=p+1;x2<=x;x2++){
-            lowerbound[x2]=[lowerbound[x2],z].min();
-          }
+        for(var x2=p+1;x2<=x;x2++){
+          lowerbound[x2]=[lowerbound[x2],z].min();
         }
       }
     }else{
