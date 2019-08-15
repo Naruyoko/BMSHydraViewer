@@ -87,8 +87,10 @@ var BMV="4";
 var green="#56f442";
 var pink="#e841f4";
 var lastmatrix;
-function changeVersion(){
-  BMV=dg("version").value;
+var changeVersion = function (){
+  for(var i=0;i<form.version.length;i++){
+    if(form.version[i].checked)BMV=form.version[i].value;
+  }
   draw();
 }
 //display
@@ -104,7 +106,7 @@ window.onload=function (){
   draw();
 }
 
-function draw(){
+var draw=function (){
   //get matrix
   var matrixText=dg("input").textContent;
   var matrix=JSON.parse("["+matrixText.replace(/\(/g,"[").replace(/\)/g,"]").replace(/\]\[/g,"],[")+"]");
@@ -165,8 +167,6 @@ function draw(){
     }
     //row root
     rowbase[1]=rowbase[1]+(margin+3)*30;
-    console.log("margin["+y+"]="+margin);
-    console.log("base["+y+"]="+rowbase[1]);
     ctx.strokeStyle="black";
     ctx.lineWidth=2;
     ctx.beginPath();
