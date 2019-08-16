@@ -18,6 +18,18 @@ function Matrix(matrix){
   this.columns=matrix.length;
   this.rows=matrix[0].length;
 }
+Matrix.prototype.toString=function (){
+  str="";
+  for(var x=0;x<this.columns;x++){
+    str+="(";
+    for(var y=0;y<this.rows;y++){
+      str+=this.get(x,y);
+      if(y!=this.rows-1) str+=",";
+    }
+    str+=")";
+  }
+  return str;
+}
 Matrix.prototype.get=function (x,y){
   return this.matrix[x][y];
 }
@@ -106,42 +118,56 @@ window.onload=function (){
   draw();
 }
 var draw=function (){
-  //parse string
-  var matrixText=dg("input").textContent;
-  var matrix=JSON.parse("["+matrixText.replace(/\(/g,"[").replace(/\)/g,"]").replace(/\]\[/g,"],[")+"]");
-  
-  //reshape
-  var columns=matrix.length;
-  var rows=0;
-  for (var i=0;i<columns;i++){
-    if (matrix[i].length>rows){
-      rows=matrix[i].length;
-    }
-  }
-  for (var i=0;i<columns;i++){
-    while (matrix[i].length<rows){
-      matrix[i].push(0);
-    }
-  }
-  matrix=new Matrix(matrix);
-
   //clear canvas
   ctx.fillStyle="white";
   ctx.fillRect(0,0,640,960);
-  
-  if(BMV=="3.3+4"){
-    // both matrices
-    drawMatrix([50,                       -10], "3.3", matrix);
-    drawMatrix([50+(matrix.columns+1)*30, -10], "4"  , matrix);
-  }else{
-    // single matrix
-    drawMatrix([50,                  -10], BMV, matrix);
-  }
+
+  var matricesText=dg("input").textContent;
+  var matrixTextList=matricesText.split("\n");
+  var matrices = matrixTextList.length;
+
+  var y=0;
+  for(var m=0;m<matrices;m++){
+    var matrixText = matrixTextList[m];
+    //parse string
+    var matrix=JSON.parse("["+matrixText.replace(/\(/g,"[").replace(/\)/g,"]").replace(/\]\[/g,"],[")+"]");
+    
+    //reshape
+    var columns=matrix.length;
+    var rows=0;
+    for (var i=0;i<columns;i++){
+      if (matrix[i].length>rows){
+        rows=matrix[i].length;
+      }
+    }
+    for (var i=0;i<columns;i++){
+      while (matrix[i].length<rows){
+        matrix[i].push(0);
+      }
+    }
+    matrix=new Matrix(matrix);
+
+    //draw string
+    ctx.fillStyle="black";
+    ctx.font = '18px Arial';
+    ctx.fillText(matrix.toString(),50,y+30);
+    y+=30;
+
+    if(BMV=="3.3+4"){
+      // both matrices
+      var y1=drawMatrix(50,                       y, "3.3", matrix);
+      var y2=drawMatrix(50+(matrix.columns+1)*30, y, "4"  , matrix);
+      y=y+[y1,y2].max();
+    }else{
+      // single matrix
+      y=y+drawMatrix([50,y], BMV, matrix);
+    }
+  }//m
 }
-var drawMatrix=function (rowbase, ver, matrix){
+var drawMatrix=function (x, y, ver, matrix){
   var columns=matrix.columns;
   var rows=matrix.rows;
-  
+  var rowbase=[x,y];
   //draw
   for (var y=0;y<matrix.rows;y++){
     //get lowerbound of upper row
@@ -199,7 +225,8 @@ var drawMatrix=function (rowbase, ver, matrix){
       ctx.stroke();
       //number
       ctx.fillStyle="black";
-      ctx.fillText(matrix.get(x,y),rowbase[0]-4+x*30,rowbase[1]+4-matrix.get(x,y)*30);
+      ctx.font="15px arial";
+      ctx.fillText(matrix.get(x,y),rowbase[0]-4+x*30,rowbase[1]+5-matrix.get(x,y)*30);
       //bad root symbol
       if (x==matrix.badroot()){
         ctx.strokeStyle="red";
@@ -240,4 +267,5 @@ var drawMatrix=function (rowbase, ver, matrix){
     }
   }
   lastmatrix=matrix;
+  return rowbase[1]+30;
 }
