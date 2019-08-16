@@ -120,7 +120,7 @@ window.onload=function (){
 var draw=function (){
   for(var cycle=0;cycle<2;cycle++){ // draw twice because image size
     //parse matrices
-    var matricesText=form.input.value.replace(/\n+/g,"\n").replace(/\s/g,"");
+    var matricesText=form.input.value.replace(/\n\n+/g,"\n").replace(/ /g,"");
     var matrixTextList=matricesText.split("\n");
     var matrices = matrixTextList.length;
     var matrixList = new Array(matrices);
