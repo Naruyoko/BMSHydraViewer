@@ -118,57 +118,83 @@ window.onload=function (){
   draw();
 }
 var draw=function (){
-  //clear canvas
-  ctx.fillStyle="white";
-  ctx.fillRect(0,0,640,960);
-
-  var matricesText=dg("input").textContent;
-  var matrixTextList=matricesText.split("\n");
-  var matrices = matrixTextList.length;
-
-  var y=0;
-  for(var m=0;m<matrices;m++){
-    var matrixText = matrixTextList[m];
-    //parse string
-    var matrix=JSON.parse("["+matrixText.replace(/\(/g,"[").replace(/\)/g,"]").replace(/\]\[/g,"],[")+"]");
-    
-    //reshape
-    var columns=matrix.length;
-    var rows=0;
-    for (var i=0;i<columns;i++){
-      if (matrix[i].length>rows){
-        rows=matrix[i].length;
+  for(var cycle=0;cycle<2;cycle++){ // draw twice because image size
+    //parse matrices
+    var matricesText=form.input.value;
+    var matrixTextList=matricesText.split("\n");
+    var matrices = matrixTextList.length;
+    var matrixList = new Array(matrices);
+    var height=0;
+    for(var m=0;m<matrices;m++){
+      matrixList[m]=JSON.parse(
+        "["+matrixTextList[m]
+          .replace(/\(/g,"[")
+          .replace(/\)/g,"]")
+          .replace(/\]\[/g,"],[")+"]");
+      var matrix=matrixList[m];
+      var columns=matrix.length;
+      var rows=0;
+      for (var i=0;i<columns;i++){
+        if (matrix[i].length>rows){
+          rows=matrix[i].length;
+        }
       }
-    }
-    for (var i=0;i<columns;i++){
-      while (matrix[i].length<rows){
-        matrix[i].push(0);
+      for (var i=0;i<columns;i++){
+        while (matrix[i].length<rows){
+          matrix[i].push(0);
+        }
       }
+      matrixList[m]=new Matrix(matrix);
     }
-    matrix=new Matrix(matrix);
 
-    //draw string
-    ctx.fillStyle="black";
-    ctx.font = '18px Arial';
-    ctx.fillText(matrix.toString(),50,y+30);
-    y+=30;
+    //clear canvas
+    ctx.fillStyle="white";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    if(BMV=="3.3+4"){
-      // both matrices
-      var y1=drawMatrix(50,                       y, "3.3", matrix);
-      var y2=drawMatrix(50+(matrix.columns+1)*30, y, "4"  , matrix);
-      y=y+[y1,y2].max();
-    }else{
-      // single matrix
-      y=y+drawMatrix(50, y, BMV, matrix);
-    }
-  }//m
-}
+    //draw
+    var x=0;
+    var y=0;
+    for(var m=0;m<matrices;m++){
+      var matrix=matrixList[m];
+      //draw string
+      ctx.fillStyle="black";
+      ctx.font = '18px Arial';
+      ctx.fillText(matrix.toString(),50,y+30);
+      y+=30;
+
+      if(BMV=="3.3+4"){
+        // both matrices
+        var xx=50;
+        var y1=drawMatrix(xx,y, "3.3", matrix);
+        xx+=30+(matrix.columns+1)*30;
+        var y2=drawMatrix(xx,y, "4"  , matrix);
+        xx+=30+(matrix.columns+1)*30;
+        x=[x,xx-50].max();
+        y=[y1,y2].max();
+      }else{
+        // single matrix
+        var xx=50;
+        y=drawMatrix(xx, y, BMV, matrix);
+        xx+=30+(matrix.columns+1)*30;
+        x=[x,xx-50].max();
+      }
+    }//m
+
+    //resize
+    var data = ctx.getImageData(0, 0, x, y);
+    canvas.width=x;
+    canvas.height=y;
+    ctx.putImageData(data, 0, 0);
+    //enable save
+    outimg.width  = canvas.width;
+    outimg.height = canvas.height;
+    outimg.src = canvas.toDataURL('image/jpg');
+  }//for cycle
+}//draw()
 var drawMatrix=function (x, y, ver, matrix){
   var columns=matrix.columns;
   var rows=matrix.rows;
   var rowbase=[x,y];
-  //draw
   for (var y=0;y<matrix.rows;y++){
     //get lowerbound of upper row
     var lowerbound=new Array(matrix.columns);
@@ -267,5 +293,5 @@ var drawMatrix=function (x, y, ver, matrix){
     }
   }
   lastmatrix=matrix;
-  return rowbase[1]+30;
+  return rowbase[1]+50;
 }
