@@ -58,8 +58,8 @@ Matrix.prototype.ancestry=function (x,y){
 Matrix.prototype.badroot=function (){
   return this.getParent(this.columns-1,this.lowermostNonzero());
 }
-Matrix.prototype.color=function (x,y){
-  if (BMV=="4"){
+Matrix.prototype.color=function (x,y,ver){
+  if (ver=="4"){
     if (y<this.lowermostNonzero()&&x>=this.badroot()&&x!==this.columns-1){
       if (this.ancestry(x,y).includes(this.badroot())){
         return green;
@@ -69,9 +69,9 @@ Matrix.prototype.color=function (x,y){
     }else{
       return "white";
     }
-  }else if (BMV=="3.3"){
+  }else if (ver=="3.3"){
     if (y<this.lowermostNonzero()&&x>=this.badroot()&&x!==this.columns-1){
-      if (this.ancestry(x,this.lowermostNonzero()).includes(this.badroot())||this.getParent(x,y)>this.badroot()&&this.color(this.getParent(x,y),y)==green){
+      if (this.ancestry(x,this.lowermostNonzero()).includes(this.badroot())||this.getParent(x,y)>this.badroot()&&this.color(this.getParent(x,y),y,ver)==green){
         return green;
       }else{
         return pink;
@@ -83,7 +83,7 @@ Matrix.prototype.color=function (x,y){
     return "#dddddd"
   }
 }
-var BMV="4";
+var BMV="3.3+4";
 var green="#56f442";
 var pink="#e841f4";
 var lastmatrix;
@@ -105,11 +105,12 @@ window.onload=function (){
   ctx=canvas.getContext("2d");
   draw();
 }
-
 var draw=function (){
-  //get matrix
+  //parse string
   var matrixText=dg("input").textContent;
   var matrix=JSON.parse("["+matrixText.replace(/\(/g,"[").replace(/\)/g,"]").replace(/\]\[/g,"],[")+"]");
+  
+  //reshape
   var columns=matrix.length;
   var rows=0;
   for (var i=0;i<columns;i++){
@@ -123,15 +124,26 @@ var draw=function (){
     }
   }
   matrix=new Matrix(matrix);
-  
-  //set up canvas
+
+  //clear canvas
   ctx.fillStyle="white";
   ctx.fillRect(0,0,640,960);
   
+  if(BMV=="3.3+4"){
+    // both matrices
+    drawMatrix([50,                       -10], "3.3", matrix);
+    drawMatrix([50+(matrix.columns+1)*30, -10], "4"  , matrix);
+  }else{
+    // single matrix
+    drawMatrix([50,                  -10], BMV, matrix);
+  }
+}
+var drawMatrix=function (rowbase, ver, matrix){
+  var columns=matrix.columns;
+  var rows=matrix.rows;
+  
   //draw
-  var rowbase=[50,-50];
   for (var y=0;y<matrix.rows;y++){
-    stop;
     //get lowerbound of upper row
     var lowerbound=new Array(matrix.columns);
     if(y>0){
@@ -166,7 +178,7 @@ var draw=function (){
       margin = [margin, upperbound[x]-lowerbound[x]].max();
     }
     //row root
-    rowbase[1]=rowbase[1]+(margin+3)*30;
+    rowbase[1]=rowbase[1]+(margin+1)*30;
     ctx.strokeStyle="black";
     ctx.lineWidth=2;
     ctx.beginPath();
@@ -179,7 +191,7 @@ var draw=function (){
       //node
       ctx.strokeStyle="black";
       console.log(x+","+y+":"+matrix.getParent(x,y))
-      ctx.fillStyle=matrix.color(x,y);
+      ctx.fillStyle=matrix.color(x,y,ver);
       ctx.lineWidth=1;
       ctx.beginPath();
       ctx.arc(rowbase[0]+x*30,rowbase[1]-matrix.get(x,y)*30,7.8,0,2*Math.PI);
