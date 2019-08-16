@@ -160,7 +160,7 @@ var draw=function (){
       y=y+[y1,y2].max();
     }else{
       // single matrix
-      y=y+drawMatrix([50,y], BMV, matrix);
+      y=y+drawMatrix(50, y, BMV, matrix);
     }
   }//m
 }
