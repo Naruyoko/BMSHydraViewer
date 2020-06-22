@@ -8,12 +8,15 @@
 </head>
 <body>
   <h1>BMS Upper-branch ignoring Hydra Viewer</h1>
-  <div id="input" style="resize:none;display:block;overflow:auto;background-color:white;border:darkgray solid 1px;" contentEditable>(0,0,0)(1,1,1)(2,1,0)(1,1,1)</div>
   <form name=form>
-  <input type=button value="Draw" onclick="javascript:draw();">
+  <textarea id="input" style="width:500px;height:60px;display:block;overflow:auto;background-color:white;border:darkgray solid 1px;" contentEditable>(0,0,0)(1,1,1)(2,1,0)(1,1,1)
+(0,0,0)(1,1,1)(2,2,1)(3,1,0)(4,2,1)(5,3,1)(6,2,0)(5,2,1)(6,2,1)</textarea>
+  <input type=button value="Draw" onclick="javascript:draw();draw();">
   <input type=radio name="version" value="3.3" onchange="javascript:changeVersion();">3.3
-  <input type=radio name="version" value="4" checked onchange="javascript:changeVersion();">4
+  <input type=radio name="version" value="4"   onchange="javascript:changeVersion();">4
+  <input type=radio name="version" value="3.3+4" checked onchange="javascript:changeVersion();">3.3+4
   </form>
-  <canvas id="output" width=640 height=960></canvas>
+  <canvas id="output" width=640 height=960 style="display:none"></canvas>
+  <img id='outimg' style='border-style:none;border-width:1px'>
 </body>
 </html>
