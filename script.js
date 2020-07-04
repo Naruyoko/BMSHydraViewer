@@ -104,6 +104,7 @@ var changeVersion = function (){
     if(form.version[i].checked)BMV=form.version[i].value;
   }
   draw();
+  renewlink();
 }
 //display
 var dg=function (id){
@@ -115,15 +116,19 @@ window.onload=function (){
   console.clear();
   canvas=dg("output");
   ctx=canvas.getContext("2d");
+  getquery();
   draw();
+  renewlink();
 }
+var matrices;
+var matrixList;
 var draw=function (){
   for(var cycle=0;cycle<2;cycle++){ // draw twice because image size
     //parse matrices
-    var matricesText=form.input.value.replace(/\n\n+/g,"\n").replace(/ /g,"");
+    var matricesText=form.input.value.replace(/\[.*\]/g,"").replace(/\n\n+/g,"\n").replace(/ /g,"");
     var matrixTextList=matricesText.split("\n");
-    var matrices = matrixTextList.length;
-    var matrixList = new Array(matrices);
+    matrices = matrixTextList.length;
+    matrixList = new Array(matrices);
     var height=0;
     for(var m=0;m<matrices;m++){
       matrixList[m]=JSON.parse(
@@ -144,7 +149,11 @@ var draw=function (){
           matrix[i].push(0);
         }
       }
-      matrixList[m]=new Matrix(matrix);
+      if(matrix.length!=0){
+        matrixList[m]=new Matrix(matrix);
+      }else{
+        matrices--;
+      }
     }
 
     //clear canvas
@@ -154,12 +163,16 @@ var draw=function (){
     //draw
     var x=0;
     var y=0;
+    var stroffsetx = 50;//pixel
+    var textwidth=0; 
     for(var m=0;m<matrices;m++){
       var matrix=matrixList[m];
       //draw string
       ctx.fillStyle="black";
       ctx.font = '18px Arial';
-      ctx.fillText(matrix.toString(),50,y+30);
+      var str = matrix.toString();
+      textwidth = [textwidth, ctx.measureText(str).width].max();
+      ctx.fillText(matrix.toString(),stroffsetx,y+30);
       y+=30;
 
       if(BMV=="3.3+4"){
@@ -181,6 +194,7 @@ var draw=function (){
     }//m
 
     //resize
+    x=[x,stroffsetx+textwidth].max();
     var data = ctx.getImageData(0, 0, x, y);
     canvas.width=x;
     canvas.height=y;
@@ -242,7 +256,7 @@ var drawMatrix=function (x, y, ver, matrix){
     for (var x=0;x<matrix.columns;x++){
       //node
       ctx.strokeStyle="black";
-      console.log(x+","+y+":"+matrix.getParent(x,y))
+ //     console.log(x+","+y+":"+matrix.getParent(x,y))
       ctx.fillStyle=matrix.color(x,y,ver);
       ctx.lineWidth=1;
       ctx.beginPath();
@@ -294,4 +308,33 @@ var drawMatrix=function (x, y, ver, matrix){
   }
   lastmatrix=matrix;
   return rowbase[1]+50;
+}
+var handledrawbutton=function(){
+  draw();
+  renewlink();
+}
+var renewlink=function(){
+  var query="m=";
+  for(var m=0;m<matrices;m++){
+    query+=matrixList[m].toString()+";";
+  }
+  query+="&ver="+BMV;
+  document.getElementById("link").href = location.origin+location.pathname+"?"+query;
+}
+var getquery=function(){
+  var query=location.search.substr(1);
+  if(query.length>0){
+    //get matrix
+    var matrixstr = query.match(/(m=)([(0-9),;]*)(&)/)[2].split(";");
+    form.input.value="";
+    for(var m=0;m<matrixstr.length-1;m++){
+      if(m>0)form.input.value +="\n";
+      form.input.value += matrixstr[m];
+    }
+    //get version
+    BMV=query.match(/(ver=)(.*)(&*)/)[2];
+    for(var i=0;i<form.version.length;i++){
+      if(BMV == form.version[i].value) form.version[i].checked=true;
+    }
+  }
 }
