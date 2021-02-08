@@ -13,16 +13,28 @@ Array.prototype.max=function(){
   return max;
 }
 //RectangularMatrix
-function RectangularMatrix(matrix){
-  matrix=RectangularMatrix.cloneMatrix(matrix);
-  var rows=0;
-  for (var i=0;i<matrix.length;i++) rows=Math.max(rows,matrix[i].length);
-  for (var i=0;i<matrix.length;i++){
-    while (matrix[i].length<rows) matrix[i].push(0);
+function RectangularMatrix(arg0,arg1){
+  if (typeof arg0=="number"){
+    var matrix=[];
+    for (var i=0;i<arg0;i++){
+      matrix.push([]);
+      for (var j=0;j<arg1;j++){
+        matrix[i].push(0);
+      }
+    }
+    this.columns=arg0;
+    this.rows=arg1;
+  }else{
+    var matrix=RectangularMatrix.cloneMatrix(arg0);
+    var rows=0;
+    for (var i=0;i<matrix.length;i++) rows=Math.max(rows,matrix[i].length);
+    for (var i=0;i<matrix.length;i++){
+      while (matrix[i].length<rows) matrix[i].push(0);
+    }
+    this.matrix=matrix;
+    this.columns=matrix.length;
+    this.rows=rows;
   }
-  this.matrix=matrix;
-  this.columns=matrix.length;
-  this.rows=rows;
 }
 RectangularMatrix.cloneMatrix=function (matrix){
   var r=[];
@@ -37,6 +49,36 @@ RectangularMatrix.prototype.get=function (x,y){
 }
 Object.defineProperty(RectangularMatrix.prototype,"constructor",{
   value:RectangularMatrix,
+  enumerable:false,
+  writable:true
+});
+//BashicuMatrix extends RectangularMatrix
+function BashicuMatrix(arg0,arg1){
+  if (typeof arg0=="string") arg0=BashicuMatrix.parseString(arg0);
+  RectangularMatrix.call(this,arg0,arg1);
+}
+BashicuMatrix.parseString=function (s){
+  return JSON.parse(
+        "["+s
+          .replace(/\(/g,"[")
+          .replace(/\)/g,"]")
+          .replace(/\]\[/g,"],[")+"]");
+}
+BashicuMatrix.prototype=Object.create(RectangularMatrix.prototype);
+BashicuMatrix.prototype.toString=function (){
+  var str="";
+  for(var x=0;x<this.columns;x++){
+    str+="(";
+    for(var y=0;y<this.rows;y++){
+      str+=this.get(x,y);
+      if(y!=this.rows-1) str+=",";
+    }
+    str+=")";
+  }
+  return str;
+}
+Object.defineProperty(BashicuMatrix.prototype,"constructor",{
+  value:BashicuMatrix,
   enumerable:false,
   writable:true
 });
@@ -183,13 +225,6 @@ BMalgs.precolor.BM2_5=function (version,matrix,x,y){
     return pink;
   }
 }
-BMalgs.precolor.BM3=function (version,matrix,x,y){
-  if (version.ancestry(matrix,x,version.lowermostNonzero(matrix)).includes(version.badroot(matrix))||version.parent(matrix,x,y)>version.badroot(matrix)&&version.color(matrix,version.parent(matrix,x,y),y)==green){
-    return green;
-  }else{
-    return pink;
-  }
-}
 BMalgs.precolor.BM3_3=function (version,matrix,x,y){
   if (version.ancestry(matrix,x,version.lowermostNonzero(matrix)).includes(version.badroot(matrix))||version.parent(matrix,x,y)>version.badroot(matrix)&&version.color(matrix,version.parent(matrix,x,y),y)==green){
     return green;
@@ -326,6 +361,25 @@ BMalgs.color.all1orall0=function (version,matrix,x,y){
       }
     }
     return green;
+  }
+}
+BMalgs.color.BM3=function (version,matrix,x,y){
+  if (y>=version.lowermostNonzero(matrix)||x<version.badroot(matrix)||x==matrix.columns-1){
+    return "white";
+  }else if (y==0||x==version.badroot(matrix)){
+    return green;
+  }else{
+    var bad=matrix.columns-version.badroot(matrix);
+    var n=x+bad;
+    for (var M=n;M>=0&&(M>=matrix.columns?matrix.get(M-bad,0)+matrix.get(matrix.columns-1,0)-matrix.get(version.badroot(matrix),0):matrix.get(M,0))>=matrix.get(x,0)+matrix.get(matrix.columns-1,0)-matrix.get(version.badroot(matrix),0);M--);
+    var left=matrix.get(M-bad,y);
+    var mid=M>=matrix.columns?version.color(matrix,M-bad,y)==green?matrix.get(M-bad,y)+matrix.get(matrix.columns-1,y)-matrix.get(version.badroot(matrix),y):matrix.get(M-bad,y):matrix.get(M,y);
+    var right=matrix.get(x,y)+matrix.get(matrix.columns-1,y)-matrix.get(version.badroot(matrix),y);
+    if (left<mid&&mid<right){
+      return green;
+    }else{
+      return pink;
+    }
   }
 }
 BMalgs.color.Rpakr0319_1=function (version,matrix,x,y){
@@ -481,7 +535,7 @@ new BMver({
   parent:BMalgs.parent.upperBranchIgnoringModel,
   badroot:BMalgs.badroot.upperBranchIgnoringModel,
   precolor:BMalgs.precolor.allBranches,
-  color:BMalgs.color.none
+  color:BMalgs.color.BM3
 });
 new BMver({
   name:"3.1",
@@ -647,36 +701,6 @@ var BMVpresets={
 };
 var BMVpresetlist=["3.3+4","byBashicu","byKoteitan","byYukito","byNish","byEcl1psed","byRpakr","empty","all"];
 var presetUsed="";
-//BashicuMatrix extends RectangularMatrix
-function BashicuMatrix(matrix){
-  if (typeof matrix=="string") matrix=BashicuMatrix.parseString(matrix);
-  RectangularMatrix.call(this,matrix);
-}
-BashicuMatrix.parseString=function (s){
-  return JSON.parse(
-        "["+s
-          .replace(/\(/g,"[")
-          .replace(/\)/g,"]")
-          .replace(/\]\[/g,"],[")+"]");
-}
-BashicuMatrix.prototype=Object.create(RectangularMatrix.prototype);
-BashicuMatrix.prototype.toString=function (){
-  var str="";
-  for(var x=0;x<this.columns;x++){
-    str+="(";
-    for(var y=0;y<this.rows;y++){
-      str+=this.get(x,y);
-      if(y!=this.rows-1) str+=",";
-    }
-    str+=")";
-  }
-  return str;
-}
-Object.defineProperty(BashicuMatrix.prototype,"constructor",{
-  value:BashicuMatrix,
-  enumerable:false,
-  writable:true
-});
 var BMV=["3.3","4"];
 var green="#56f442";
 var pink="#e841f4";
