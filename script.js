@@ -672,7 +672,7 @@ var BMVpresets={
   },
   "byKoteitan":{
     name:"By Koteitan",
-    content:["1.1","2.2","2.3"]
+    content:["1.1","2.2","4"]
   },
   "byYukito":{
     name:"By Yukito",
