@@ -723,7 +723,6 @@ window.onload=function (){
 }
 var changeVersion=function (){
   presetUsed="";
-  draw();
   renewlink();
 }
 var refreshversionlist=function (refreshoptions){
@@ -738,8 +737,8 @@ var refreshversionlist=function (refreshoptions){
   for (var i=0;i<BMV.length;i++) addversiondom(BMV[i],i);
   selectedVersionID=-1;
   var menu=dg("versiondropdown");
-  menu.onclick=menu.onmousein=mouseinversionmenu;
-  menu.onmouseout=mouseoutversionmenu;
+  menu.onclick=menu.onmouseenter=mouseenterversionmenu;
+  menu.onmouseleave=mouseleaveversionmenu;
   deselectversionitem();
   if (refreshoptions){
     var versionselect=form.version;
@@ -774,8 +773,8 @@ var addversiondom=function (version,i){
   node.className="versionitem";
   node.textContent=BMvers[version]?BMvers[version].displayname:"Unknown";
   node.onclick=selectversionitem;
-  node.onmousein=mouseinversionitem;
-  node.onmouseout=mouseoutversionitem;
+  node.onmouseenter=mouseenterversionitem;
+  node.onmouseleave=mouseleaveversionitem;
   dg("versionlist").appendChild(node);
 }
 var moveleftversion=function (i){
@@ -826,13 +825,13 @@ var selectversionitem=function (e){
   dg("versiondropdown").style.top=elem.offsetTop+elem.offsetHeight+"px";
   dg("versiondropdown").style.left=elem.offsetLeft+"px";
 }
-var mouseinversionitem=function (e){
+var mouseenterversionitem=function (e){
   var elem=e.target||e.srcElement;
   if (elem.id.slice(0,11)!="versionitem") return;
   var itemid=+elem.id.slice(11);
   if (itemid==selectedVersionID) ismouseinversionitem=true;
 }
-var mouseoutversionitem=function (e){
+var mouseleaveversionitem=function (e){
   var elem=e.target||e.srcElement;
   if (elem.id.slice(0,11)!="versionitem") return;
   var itemid=+elem.id.slice(11);
@@ -841,12 +840,12 @@ var mouseoutversionitem=function (e){
     if (!ismouseinversionitem&&!ismouseinversionmenu) calldeselectversionitem();
   }
 }
-var mouseinversionmenu=function (e){
+var mouseenterversionmenu=function (e){
   var elem=e.target||e.srcElement;
   if (elem.id!="versiondropdown"&&!dg("versiondropdown").contains(elem)) return;
   ismouseinversionmenu=true;
 }
-var mouseoutversionmenu=function (e){
+var mouseleaveversionmenu=function (e){
   var elem=e.target||e.srcElement;
   if (elem.id!="versiondropdown"&&!dg("versiondropdown").contains(elem)) return;
   ismouseinversionmenu=false;
