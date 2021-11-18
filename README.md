@@ -1,2 +1,3 @@
-# BM4HydraViewer
-Upper-branch ingnoring hydra viewer for BM4.
+# BMSHydraViewer
+
+Draws the hydra view of matrices in various versions of Bashicu Matrix System.
