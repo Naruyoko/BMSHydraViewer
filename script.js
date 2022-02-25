@@ -154,6 +154,20 @@ BMalgs.parent.leftMethod=function (version,matrix,x,y){
   }
   return -1;
 }
+BMalgs.parent.BM1_2=function (version,matrix,x,y){
+  var minFirst=Infinity;
+  for (var i=x-1;i>-1;i--){
+    if (matrix.get(i,0)>minFirst) continue;
+    minFirst=Math.min(minFirst,matrix.get(i,0));
+    for (var j=0;j<=y;j++){
+      if (matrix.get(i,j)>=matrix.get(x,j)){
+        break;
+      }
+    }
+    if (j==y+1) return i;
+  }
+  return -1;
+}
 BMalgs.parent.concestorMethod=function (version,matrix,x,y){
   for (var i=x-1;i>-1;i--){
     if (matrix.get(i,y)<matrix.get(x,y)){
@@ -181,7 +195,7 @@ BMalgs.parent.upperBranchIgnoringModel=function (version,matrix,x,y){
   }
 }
 BMalgs.badroot={};
-BMalgs.badroot.leftMethod=BMalgs.badroot.upperBranchIgnoringModel=BMalgs.badroot.concestorMethod=function (version,matrix){
+BMalgs.badroot.leftMethod=BMalgs.badroot.BM1_2=BMalgs.badroot.upperBranchIgnoringModel=BMalgs.badroot.concestorMethod=function (version,matrix){
   return version.parent(matrix,matrix.columns-1,version.lowermostNonzero(matrix));
 }
 BMalgs.precolor={};
@@ -503,6 +517,14 @@ new BMver({
   color:BMalgs.color.none
 });
 new BMver({
+  name:"1.2",
+  displayname:"1.2/4.1",
+  parent:BMalgs.parent.BM1_2,
+  badroot:BMalgs.badroot.BM1_2,
+  precolor:BMalgs.precolor.allBranches,
+  color:BMalgs.color.none
+});
+new BMver({
   name:"2",
   parent:BMalgs.parent.upperBranchIgnoringModel,
   badroot:BMalgs.badroot.upperBranchIgnoringModel,
@@ -691,6 +713,10 @@ var BMVpresets={
     name:"By Rpakr",
     content:["3.3","Rpakr0319_1","Rpakr0319_2","UBRAplusParentCheck","RpakrDef1","RpakrDef2","RpakrDef3","RpakrDef4","RpakrDef4p"]
   },
+  "byPsiCubed2":{
+    name:"By PsiCubed2",
+    content:["1.2"]
+  },
   "empty":{
     name:"Empty",
     content:[]
@@ -700,7 +726,7 @@ var BMVpresets={
     content:BMverlist
   }
 };
-var BMVpresetlist=["3.3+4","byBashicu","byKoteitan","byYukito","byNish","byEcl1psed","byRpakr","empty","all"];
+var BMVpresetlist=["3.3+4","byBashicu","byKoteitan","byYukito","byNish","byEcl1psed","byRpakr","byPsiCubed2","empty","all"];
 var presetUsed="";
 var BMV=["3.3","4"];
 var green="#56f442";
