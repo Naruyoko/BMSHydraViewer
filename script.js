@@ -143,7 +143,18 @@ var BMverlist=[];
 //See https://googology.wikia.org/wiki/User_blog:Koteitan/Categorizing_of_the_rule_sets_for_all_sub_versions_of_bashicu_matrix
 var BMalgs={};
 BMalgs.parent={};
-BMalgs.parent.leftMethod=BMalgs.parent.concestorMethod=function (version,matrix,x,y){
+BMalgs.parent.leftMethod=function (version,matrix,x,y){
+  for (var i=x-1;i>-1;i--){
+    for (var j=0;j<=y;j++){
+      if (matrix.get(i,j)>=matrix.get(x,j)){
+        break;
+      }
+    }
+    if (j==y+1) return i;
+  }
+  return -1;
+}
+BMalgs.parent.concestorMethod=function (version,matrix,x,y){
   for (var i=x-1;i>-1;i--){
     if (matrix.get(i,y)<matrix.get(x,y)){
       return i;
@@ -170,17 +181,7 @@ BMalgs.parent.upperBranchIgnoringModel=function (version,matrix,x,y){
   }
 }
 BMalgs.badroot={};
-BMalgs.badroot.leftMethod=function (version,matrix){
-  var lowermost=version.lowermostNonzero(matrix);
-  for (var i=matrix.columns-2;i>=0;i--){
-    for (var j=0;j<=lowermost;j++){
-      if (matrix.get(i,j)>=matrix.get(matrix.columns-1,j)) break;
-    }
-    if (j==lowermost+1) return i;
-  }
-  return -1;
-}
-BMalgs.badroot.upperBranchIgnoringModel=BMalgs.badroot.concestorMethod=function (version,matrix){
+BMalgs.badroot.leftMethod=BMalgs.badroot.upperBranchIgnoringModel=BMalgs.badroot.concestorMethod=function (version,matrix){
   return version.parent(matrix,matrix.columns-1,version.lowermostNonzero(matrix));
 }
 BMalgs.precolor={};
