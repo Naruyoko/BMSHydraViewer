@@ -28,7 +28,7 @@
 <body>
   <h1>BMS Hydra Viewer</h1>
   <form name=form>
-  <textarea id="input" style="width:500px;height:60px;display:block;overflow:auto;background-color:white;border:darkgray solid 1px;" contentEditable>(0,0,0)(1,1,1)(2,1,0)(1,1,1)
+  <textarea id="input" style="width:500px;height:60px;display:block;overflow:auto;background-color:white;border:darkgray solid 1px;" oninput="javascript:handleauto()" contentEditable>(0,0,0)(1,1,1)(2,1,0)(1,1,1)
 (0,0,0)(1,1,1)(2,2,1)(3,1,0)(4,2,1)(5,3,1)(6,2,0)(5,2,1)(6,2,1)</textarea>
   <div id="versionlist" style="background-color:lightgray;border:1px dashed black;width:500px;margin:2px;padding:1px;">
     <div id="versiondropdown" style="position:absolute;background-color:white;border:1px solid gray;padding:6px;width:100px;">
@@ -40,15 +40,20 @@
     <div id="versionitem0" class="versionitem">3.3</div>
     <div id="versionitem1" class="versionitem">4</div>
   </div>
-  <select name=version>
-    <option value="3.3">3.3</option>
-    <option value="4">4</option>
-  </select>
-  <input type=button value="Add" onclick="javascript:addversion()">
-  <select name=preset style="margin-left:12px"></select>
-  <input type=button value="Load preset" onclick="javascript:loadpreset()">
-  <input type=button value="Draw" onclick="javascript:handledrawbutton();">
-  <a id="link" href="">link</a>
+  <div>
+    <select name=version>
+      <option value="3.3">3.3</option>
+      <option value="4">4</option>
+    </select>
+    <input type=button value="Add" onclick="javascript:addversion()">
+    <select name=preset style="margin-left:12px"></select>
+    <input type=button value="Load preset" onclick="javascript:loadpreset()">
+  </div>
+  <div>
+    <input type=button value="Draw" onclick="javascript:handledrawbutton();">
+    <label>Auto <input type=checkbox id="autobox" onchange="javascript:handleauto()"></label>
+    <a id="link" href="">link</a>
+  </div>
   </form>
   <canvas id="output" width=640 height=960 style="display:none"></canvas>
   <img id='outimg' style='border-style:none;border-width:1px'>

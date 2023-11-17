@@ -892,7 +892,6 @@ var loadpreset=function (){
   refreshversionlist();
   presetUsed=form.preset.value;
 }
-//setInterval(()=>dg("link").textContent=BMV.join(",")+" "+selectedVersionID+" "+ismouseinversionitem+" "+ismouseinversionmenu,100);
 var matrices;
 var matrixList;
 var draw=function (){
@@ -920,7 +919,7 @@ var draw=function (){
     var x=0;
     var y=0;
     var stroffsetx = 50;//pixel
-    var textwidth=0; 
+    var textwidth=0;
     for(var m=0;m<matrices;m++){
       var matrix=matrixList[m];
       //draw string
@@ -1058,6 +1057,15 @@ var drawMatrix=function (x, y, ver, matrix){
   lastmatrix=matrix;
   return rowbase[1]+50;
 }
+var handleauto=function(){
+  if (!dg("autobox").checked) return;
+  try{
+    draw();
+    renewlink();
+  }catch(e){
+    console.error(e);
+  }
+}
 var handledrawbutton=function(){
   draw();
   renewlink();
@@ -1092,4 +1100,3 @@ var getquery=function(){
     }
   }
 }
-window.onerror=function (e,s,l,c,o){dg("errout").innerHTML=JSON.stringify(e+"\n"+s+":"+l+":"+c+"\n"+(o&&o.stack)).replace(/\\n/g,"<br>");}
