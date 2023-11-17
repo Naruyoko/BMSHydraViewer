@@ -1,17 +1,3 @@
-Array.prototype.min=function(){
-  var min=this[0];
-  for(var i=1;i<this.length;i++){
-    if(this[i]<min)min=this[i];
-  }
-  return min;
-}
-Array.prototype.max=function(){
-  var max=this[0];
-  for(var i=1;i<this.length;i++){
-    if(this[i]>max)max=this[i];
-  }
-  return max;
-}
 //RectangularMatrix
 function RectangularMatrix(arg0,arg1){
   if (typeof arg0=="number"){
@@ -195,8 +181,12 @@ BMalgs.parent.upperBranchIgnoringModel=function (version,matrix,x,y){
   }
 }
 BMalgs.badroot={};
-BMalgs.badroot.leftMethod=BMalgs.badroot.BM1_2=BMalgs.badroot.upperBranchIgnoringModel=BMalgs.badroot.concestorMethod=function (version,matrix){
-  return version.parent(matrix,matrix.columns-1,version.lowermostNonzero(matrix));
+BMalgs.badroot.leftMethod=
+BMalgs.badroot.BM1_2=
+BMalgs.badroot.upperBranchIgnoringModel=
+BMalgs.badroot.concestorMethod=function (version,matrix){
+  var lnz=version.lowermostNonzero(matrix);
+  return lnz==-1?-1:version.parent(matrix,matrix.columns-1,lnz);
 }
 BMalgs.precolor={};
 BMalgs.precolor.allBranches=function (version,matrix,x,y){
@@ -731,7 +721,6 @@ var presetUsed="";
 var BMV=["3.3","4"];
 var green="#56f442";
 var pink="#e841f4";
-var lastmatrix;
 //display
 var canvas;
 var ctx;
@@ -892,68 +881,85 @@ var loadpreset=function (){
 var matrices;
 var matrixList;
 var draw=function (){
-  for(var cycle=0;cycle<2;cycle++){ // draw twice because image size
-    //parse matrices
-    var matricesText=form.input.value.replace(/\[.*\]/g,"").replace(/\n\n+/g,"\n").replace(/ /g,"");
-    var matrixTextList=matricesText.split("\n");
-    matrices = matrixTextList.length;
-    matrixList = new Array(matrices);
-    var height=0;
-    for(var m=0;m<matrices;m++){
-      var matrix=new BashicuMatrix(matrixTextList[m]);
-      if(matrix.columns!=0){
-        matrixList[m]=matrix;
-      }else{
-        matrices--;
-      }
+  //parse matrices
+  var matricesText=form.input.value.replace(/\[.*\]/g,"").replace(/\n\n+/g,"\n").replace(/ /g,"");
+  var matrixTextList=matricesText.split("\n");
+  matrices = matrixTextList.length;
+  matrixList = new Array(matrices);
+  for(var m=0;m<matrices;m++){
+    var matrix=new BashicuMatrix(matrixTextList[m]);
+    if(matrix.columns!=0){
+      matrixList[m]=matrix;
+    }else{
+      matrices--;
     }
+  }
 
-    //clear canvas
-    ctx.fillStyle="white";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+  var vers=new Array(BMV.length);
+  for (var i=0;i<BMV.length;i++){
+    var ver=BMvers[BMV[i]];
+    if (!ver) ver=BMvers.empty;
+    vers[i]=ver;
+  }
 
-    //draw
-    var x=0;
-    var y=0;
-    var stroffsetx = 50;//pixel
-    var textwidth=0;
-    for(var m=0;m<matrices;m++){
-      var matrix=matrixList[m];
-      //draw string
-      ctx.fillStyle="black";
-      ctx.font = '18px Arial';
-      var str = matrix.toString();
-      textwidth = [textwidth, ctx.measureText(str).width].max();
-      ctx.fillText(matrix.toString(),stroffsetx,y+30);
-      y+=30;
-      var xx=50;
-      var yy=[];
-      for (var i=0;i<BMV.length;i++){
-        yy.push(drawMatrix(xx,y,BMV[i],matrix));
-        xx+=30+(matrix.columns+1)*30;
-      }
-      x=[x,xx-50].max();
-      y=yy.length?yy.max():y;
-    }//m
+  var offsetList = new Array(matrices);
+  var width=0;
+  var height=0;
+  var ys = new Array(matrices);
+  var stroffsetx = 50;//pixel
+  ctx.fillStyle="black";
+  ctx.font = '18px Arial';
+  for(var m=0;m<matrices;m++){
+    var matrix=matrixList[m];
+    //measure string
+    var str = matrix.toString();
+    var xx = stroffsetx+ctx.measureText(str).width;
+    width = xx>width?xx:width;
+    ys[m]=height;
+    height+=30;
+    //measure drawing
+    var xx=(30+(matrix.columns+1)*30)*BMV.length;
+    width = xx>width?xx:width;
+    offsetList[m]=new Array(BMV.length);
+    var yy=0;
+    for (var i=0;i<BMV.length;i++){
+      var offsets=rowOffsets(vers[i],matrix);
+      offsetList[m][i]=offsets;
+      var ny=offsets[matrix.rows-1]+50;
+      yy=ny>yy?ny:yy;
+    }
+    height=height+yy;
+  }
 
-    //resize
-    x=[x,stroffsetx+textwidth].max();
-    var data = ctx.getImageData(0, 0, x, y);
-    canvas.width=x;
-    canvas.height=y;
-    ctx.putImageData(data, 0, 0);
-    //enable save
-    outimg.width  = canvas.width;
-    outimg.height = canvas.height;
-    outimg.src = canvas.toDataURL('image/jpg');
-  }//for cycle
+  //resize and clear canvas
+  canvas.width=width;
+  canvas.height=height;
+  ctx.fillStyle="white";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  //draw string
+  ctx.fillStyle="black";
+  ctx.font = '18px Arial';
+  for(var m=0;m<matrices;m++){
+    var matrix=matrixList[m];
+    ctx.fillText(matrix.toString(),stroffsetx,ys[m]+30);
+  }
+  //draw hydra
+  for(var m=0;m<matrices;m++){
+    var matrix=matrixList[m];
+    for (var i=0;i<BMV.length;i++){
+      drawMatrix(50+(30+(matrix.columns+1)*30)*i,ys[m]+30,offsetList[m][i],vers[i],matrix);
+    }
+  }
+
+  //enable save
+  outimg.width  = canvas.width;
+  outimg.height = canvas.height;
+  outimg.src = canvas.toDataURL('image/jpg');
 }//draw()
-var drawMatrix=function (x, y, ver, matrix){
-  var columns=matrix.columns;
-  var rows=matrix.rows;
-  var rowbase=[x,y];
-  if (!(ver instanceof BMver)) ver=BMvers[ver];
-  if (!ver) ver=BMvers.empty;
+var rowOffsets=function (ver, matrix){
+  var offsets=[];
+  var currentOffset=0;
   for (var y=0;y<matrix.rows;y++){
     //get lowerbound of upper row
     var lowerbound=new Array(matrix.columns);
@@ -961,10 +967,10 @@ var drawMatrix=function (x, y, ver, matrix){
       for(var x=0;x<matrix.columns;x++)lowerbound[x]=+Infinity;
       for(var x=matrix.columns-1;x>=0;x--){
         var z=matrix.get(x,y-1);
-        lowerbound[x]=[lowerbound[x],z].min();
+        lowerbound[x]=z<lowerbound[x]?z:lowerbound[x];
         var p=ver.parent(matrix,x,y-1);
         for(var x2=p+1;x2<=x;x2++){
-          lowerbound[x2]=[lowerbound[x2],z].min();
+          lowerbound[x2]=z<lowerbound[x2]?z:lowerbound[x2];
         }
       }
     }else{
@@ -975,84 +981,88 @@ var drawMatrix=function (x, y, ver, matrix){
     for(var x=0;x<matrix.columns;x++)upperbound[x]=0;
     for(var x=matrix.columns-1;x>=0;x--){
       var z=matrix.get(x,y);
-      upperbound[x]=[upperbound[x],z].max();
+      upperbound[x]=z>upperbound[x]?z:upperbound[x];
       var p=ver.parent(matrix,x,y);
       if(p!=-1){
         for(var x2=p+1;x2<=x;x2++){
-          upperbound[x2]=[upperbound[x2],z-1].max();
+          upperbound[x2]=z-1>upperbound[x2]?z-1:upperbound[x2];
         }
       }
     }
     //make margin
     var margin=0;
     for(var x=0;x<matrix.columns;x++){
-      margin = [margin, upperbound[x]-lowerbound[x]].max();
+      margin = upperbound[x]-lowerbound[x]>margin?upperbound[x]-lowerbound[x]:margin;
     }
+    offsets.push(currentOffset+=(margin+1)*30);
+  }
+  return offsets;
+}
+var drawMatrix=function (bx, by, offsets, ver, matrix){
+  var r=ver.badroot(matrix);
+  for (var y=0;y<matrix.rows;y++){
     //row root
-    rowbase[1]=rowbase[1]+(margin+1)*30;
+    var rx=bx,ry=by+offsets[y];
     ctx.strokeStyle="black";
     ctx.lineWidth=2;
     ctx.beginPath();
-    ctx.moveTo(rowbase[0]-20,rowbase[1]+20);
-    ctx.lineTo(rowbase[0]-40,rowbase[1]+40);
-    ctx.moveTo(rowbase[0]-20,rowbase[1]+40);
-    ctx.lineTo(rowbase[0]-40,rowbase[1]+20);
+    ctx.moveTo(rx-20,ry+20);
+    ctx.lineTo(rx-40,ry+40);
+    ctx.moveTo(rx-20,ry+40);
+    ctx.lineTo(rx-40,ry+20);
     ctx.stroke();
     for (var x=0;x<matrix.columns;x++){
       //node
       ctx.strokeStyle="black";
- //     console.log(x+","+y+":"+matrix.getParent(x,y))
       ctx.fillStyle=ver.color(matrix,x,y);
       ctx.lineWidth=1;
       ctx.beginPath();
-      ctx.arc(rowbase[0]+x*30,rowbase[1]-matrix.get(x,y)*30,7.8,0,2*Math.PI);
+      ctx.arc(rx+x*30,ry-matrix.get(x,y)*30,7.8,0,2*Math.PI);
       ctx.fill();
       ctx.stroke();
       //number
       ctx.fillStyle="black";
       ctx.font="15px arial";
-      ctx.fillText(matrix.get(x,y),rowbase[0]-4+x*30,rowbase[1]+5-matrix.get(x,y)*30);
+      ctx.fillText(matrix.get(x,y),rx-4+x*30,ry+5-matrix.get(x,y)*30);
       //bad root symbol
-      if (x==ver.badroot(matrix)){
+      if (x==r){
         ctx.strokeStyle="red";
         ctx.beginPath();
-        ctx.moveTo(rowbase[0]+x*30-10,rowbase[1]-matrix.get(x,y)*30+2);
-        ctx.lineTo(rowbase[0]+x*30-15,rowbase[1]-matrix.get(x,y)*30-2);
-        ctx.lineTo(rowbase[0]+x*30-10,rowbase[1]-matrix.get(x,y)*30-4);
-        ctx.lineTo(rowbase[0]+x*30-12,rowbase[1]-matrix.get(x,y)*30-10);
-        ctx.lineTo(rowbase[0]+x*30-7,rowbase[1]-matrix.get(x,y)*30-8);
-        ctx.lineTo(rowbase[0]+x*30-5,rowbase[1]-matrix.get(x,y)*30-14);
-        ctx.lineTo(rowbase[0]+x*30-0,rowbase[1]-matrix.get(x,y)*30-10);
+        ctx.moveTo(rx+x*30-10,ry-matrix.get(x,y)*30+2);
+        ctx.lineTo(rx+x*30-15,ry-matrix.get(x,y)*30-2);
+        ctx.lineTo(rx+x*30-10,ry-matrix.get(x,y)*30-4);
+        ctx.lineTo(rx+x*30-12,ry-matrix.get(x,y)*30-10);
+        ctx.lineTo(rx+x*30-7,ry-matrix.get(x,y)*30-8);
+        ctx.lineTo(rx+x*30-5,ry-matrix.get(x,y)*30-14);
+        ctx.lineTo(rx+x*30-0,ry-matrix.get(x,y)*30-10);
         ctx.stroke();
       }
       //rightmost column symbol
       if (x==matrix.columns-1){
         ctx.strokeStyle="red";
         ctx.beginPath();
-        ctx.moveTo(rowbase[0]+x*30+0,rowbase[1]-matrix.get(x,y)*30-15);
-        ctx.lineTo(rowbase[0]+x*30+10,rowbase[1]-matrix.get(x,y)*30-5);
-        ctx.moveTo(rowbase[0]+x*30+0,rowbase[1]-matrix.get(x,y)*30-5);
-        ctx.lineTo(rowbase[0]+x*30+10,rowbase[1]-matrix.get(x,y)*30-15);
+        ctx.moveTo(rx+x*30+0,ry-matrix.get(x,y)*30-15);
+        ctx.lineTo(rx+x*30+10,ry-matrix.get(x,y)*30-5);
+        ctx.moveTo(rx+x*30+0,ry-matrix.get(x,y)*30-5);
+        ctx.lineTo(rx+x*30+10,ry-matrix.get(x,y)*30-15);
         ctx.stroke();
       }
       //parency line
-      ctx.strokeStyle="black";;
+      ctx.strokeStyle="black";
       ctx.beginPath();
       var parent=ver.parent(matrix,x,y);
       if (parent==-1){
-        ctx.moveTo(rowbase[0]+parent*30+5.5,rowbase[1]+30-5.5);
-        ctx.lineTo(rowbase[0]+parent*30+15,rowbase[1]+30-15);
+        ctx.moveTo(rx+parent*30+5.5,ry+30-5.5);
+        ctx.lineTo(rx+parent*30+15,ry+30-15);
       }else{
-        ctx.moveTo(rowbase[0]+parent*30+5.5,rowbase[1]-matrix.get(parent,y)*30-5.5);
-        ctx.lineTo(rowbase[0]+parent*30+15,rowbase[1]-matrix.get(parent,y)*30-15);
+        ctx.moveTo(rx+parent*30+5.5,ry-matrix.get(parent,y)*30-5.5);
+        ctx.lineTo(rx+parent*30+15,ry-matrix.get(parent,y)*30-15);
       }
-      ctx.lineTo(rowbase[0]+x*30-15,rowbase[1]-matrix.get(x,y)*30+15);
-      ctx.lineTo(rowbase[0]+x*30-5.5,rowbase[1]-matrix.get(x,y)*30+5.5);
+      ctx.lineTo(rx+x*30-15,ry-matrix.get(x,y)*30+15);
+      ctx.lineTo(rx+x*30-5.5,ry-matrix.get(x,y)*30+5.5);
       ctx.stroke();
     }
   }
-  lastmatrix=matrix;
-  return rowbase[1]+50;
 }
 var handleauto=function(){
   if (!document.getElementById("autobox").checked) return;
