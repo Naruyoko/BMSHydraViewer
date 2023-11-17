@@ -733,14 +733,11 @@ var green="#56f442";
 var pink="#e841f4";
 var lastmatrix;
 //display
-var dg=function (id){
-  return document.getElementById(id);
-}
 var canvas;
 var ctx;
 window.onload=function (){
   console.clear();
-  canvas=dg("output");
+  canvas=document.getElementById("output");
   ctx=canvas.getContext("2d");
   refreshversionlist(true);
   getquery();
@@ -753,7 +750,7 @@ var changeVersion=function (){
   renewlink();
 }
 var refreshversionlist=function (refreshoptions){
-  var list=dg("versionlist");
+  var list=document.getElementById("versionlist");
   var children=list.childNodes;
   for (var i=0;i<children.length;i++){
     if (children[i].id!=="versiondropdown"){
@@ -763,7 +760,7 @@ var refreshversionlist=function (refreshoptions){
   }
   for (var i=0;i<BMV.length;i++) addversiondom(BMV[i],i);
   selectedVersionID=-1;
-  var menu=dg("versiondropdown");
+  var menu=document.getElementById("versiondropdown");
   menu.onclick=menu.onmouseenter=mouseenterversionmenu;
   menu.onmouseleave=mouseleaveversionmenu;
   deselectversionitem();
@@ -802,7 +799,7 @@ var addversiondom=function (version,i){
   node.onclick=selectversionitem;
   node.onmouseenter=mouseenterversionitem;
   node.onmouseleave=mouseleaveversionitem;
-  dg("versionlist").appendChild(node);
+  document.getElementById("versionlist").appendChild(node);
 }
 var moveleftversion=function (i){
   if (typeof i=="undefined") i=selectedVersionID;
@@ -810,9 +807,9 @@ var moveleftversion=function (i){
   var temp=BMV[i];
   BMV[i]=BMV[i-1];
   BMV[i-1]=temp;
-  var temp=dg("versionitem"+i).textContent;
-  dg("versionitem"+i).textContent=dg("versionitem"+(i-1)).textContent;
-  dg("versionitem"+(i-1)).textContent=temp;
+  var temp=document.getElementById("versionitem"+i).textContent;
+  document.getElementById("versionitem"+i).textContent=document.getElementById("versionitem"+(i-1)).textContent;
+  document.getElementById("versionitem"+(i-1)).textContent=temp;
   deselectversionitem();
   changeVersion();
 }
@@ -822,9 +819,9 @@ var moverightversion=function (i){
   var temp=BMV[i];
   BMV[i]=BMV[i+1];
   BMV[i+1]=temp;
-  var temp=dg("versionitem"+i).textContent;
-  dg("versionitem"+i).textContent=dg("versionitem"+(i+1)).textContent;
-  dg("versionitem"+(i+1)).textContent=temp;
+  var temp=document.getElementById("versionitem"+i).textContent;
+  document.getElementById("versionitem"+i).textContent=document.getElementById("versionitem"+(i+1)).textContent;
+  document.getElementById("versionitem"+(i+1)).textContent=temp;
   deselectversionitem();
   changeVersion();
 }
@@ -833,9 +830,9 @@ var removeversion=function (i){
   if (i<0||i>BMV.length-1) return;
   BMV.splice(i,1);
   for (var j=i;j<BMV.length;j++){
-    dg("versionitem"+j).textContent=dg("versionitem"+(j+1)).textContent;
+    document.getElementById("versionitem"+j).textContent=document.getElementById("versionitem"+(j+1)).textContent;
   }
-  dg("versionlist").removeChild(dg("versionitem"+j));
+  document.getElementById("versionlist").removeChild(document.getElementById("versionitem"+j));
   deselectversionitem();
   changeVersion();
 }
@@ -848,9 +845,9 @@ var selectversionitem=function (e){
   var itemid=+elem.id.slice(11)
   selectedVersionID=itemid;
   ismouseinversionitem=true;
-  dg("versiondropdown").style.display="";
-  dg("versiondropdown").style.top=elem.offsetTop+elem.offsetHeight+"px";
-  dg("versiondropdown").style.left=elem.offsetLeft+"px";
+  document.getElementById("versiondropdown").style.display="";
+  document.getElementById("versiondropdown").style.top=elem.offsetTop+elem.offsetHeight+"px";
+  document.getElementById("versiondropdown").style.left=elem.offsetLeft+"px";
 }
 var mouseenterversionitem=function (e){
   var elem=e.target||e.srcElement;
@@ -869,12 +866,12 @@ var mouseleaveversionitem=function (e){
 }
 var mouseenterversionmenu=function (e){
   var elem=e.target||e.srcElement;
-  if (elem.id!="versiondropdown"&&!dg("versiondropdown").contains(elem)) return;
+  if (elem.id!="versiondropdown"&&!document.getElementById("versiondropdown").contains(elem)) return;
   ismouseinversionmenu=true;
 }
 var mouseleaveversionmenu=function (e){
   var elem=e.target||e.srcElement;
-  if (elem.id!="versiondropdown"&&!dg("versiondropdown").contains(elem)) return;
+  if (elem.id!="versiondropdown"&&!document.getElementById("versiondropdown").contains(elem)) return;
   ismouseinversionmenu=false;
   if (!ismouseinversionitem&&!ismouseinversionmenu) calldeselectversionitem();
 }
@@ -883,7 +880,7 @@ var calldeselectversionitem=function (){
 }
 var deselectversionitem=function (){
   //selectedVersionID=-1;
-  dg("versiondropdown").style.display="none";
+  document.getElementById("versiondropdown").style.display="none";
 }
 var loadpreset=function (){
   var preset=BMVpresets[form.preset.value];
@@ -1058,7 +1055,7 @@ var drawMatrix=function (x, y, ver, matrix){
   return rowbase[1]+50;
 }
 var handleauto=function(){
-  if (!dg("autobox").checked) return;
+  if (!document.getElementById("autobox").checked) return;
   try{
     draw();
     renewlink();
